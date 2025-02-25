@@ -1,39 +1,105 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import MiniPlayer from "@/components/miniplayer";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  return (
+    <AuthProvider>
+      <MainLayout />
+    </AuthProvider>
+  );
+}
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+function MainLayout() {
+  const { isAuthenticated } = useAuth();
 
-  if (!loaded) {
-    return null;
+  if (!isAuthenticated) {
+    return (
+      <Tabs
+        screenOptions={{
+          tabBarStyle: { display: "none" }, // Cache la navbar
+          headerShown: false,
+        }}
+      >
+        <Tabs.Screen name="index" options={{ headerShown: false }} />
+      </Tabs>
+    );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <View style={styles.container}>
+      {/* Navigation */}
+      <Tabs
+        screenOptions={{
+          tabBarStyle: styles.tabBar,
+          tabBarActiveTintColor: "#86CDFA",
+          tabBarInactiveTintColor: "#fff",
+          headerShown: false,
+        }}
+      >
+        <Tabs.Screen
+          name="homepage"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="home-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="library"
+          options={{
+            title: "Your Library",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="library-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="create"
+          options={{
+            title: "Create",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="add-circle-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="account"
+          options={{
+            title: "Account",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen name="album" options={{ href: null }} />
+        <Tabs.Screen name="addsongs" options={{ href: null }} />
+        <Tabs.Screen name="index" options={{ href: null }} />
+      </Tabs>
+
+      {/* MiniPlayer placé de façon ABSOLUE au-dessus de la barre de navigation */}
+      <View style={styles.miniPlayer}><MiniPlayer /></View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  tabBar: {
+    backgroundColor: "#000",
+  },
+  miniPlayer: {
+    position: "absolute",
+    bottom: 50, // Ajuste en fonction de la hauteur de la barre de navigation
+    left: 0,
+    right: 0,
+    zIndex: 10, // Pour être sûr qu'il est au-dessus
+  },
+});
+
