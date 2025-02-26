@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  frontend:
+    build: .
+    container_name: hearify_frontend
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "8081:8081"   # Metro Bundler
+      - "19000:19000" # Expo DevTools
+      - "19001:19001" # Connexion à l’app Expo Go (iOS)
+      - "19002:19002" # Connexion à l’app Expo Go (Android)
+    environment:
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${LOCAL_IP_HEARIFY}
+      - EXPO_PUBLIC_API_URL=http://${LOCAL_IP_HEARIFY}:5001/v1/api
+    stdin_open: true
+    tty: true
